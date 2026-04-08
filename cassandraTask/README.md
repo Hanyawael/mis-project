@@ -1,77 +1,89 @@
-from cassandra.cluster import Cluster
-import uuid
-from datetime import datetime
+# Cassandra Python Task (Dockerized)
 
-cluster = Cluster(['127.0.0.1'])
+This project demonstrates basic Cassandra CRUD operations using Python and the DataStax Cassandra driver, with Cassandra running in Docker.
 
-session = cluster.connect()
+## Requirements
 
-session.execute(
-    "CREATE KEYSPACE IF NOT EXISTS task WITH replication = {'class': 'SimpleStrategy', 'replication_factor': '1'}"
-)
+- Docker Desktop (or Docker Engine)
+- Python 3.10+
 
-session.set_keyspace('task')
+## 1) Start Cassandra in Docker
 
-session.execute(
-    """
-    CREATE TABLE IF NOT EXISTS students
-    (
-        id uuid,
-        createdAt timestamp,
-        gpa float, 
-        email varchar,
-        student_name varchar,
-        PRIMARY KEY (id, createdAt)
-    ) WITH CLUSTERING ORDER BY (createdAt DESC)
-    """
-)
-print("Table Created successfully")
+From the project root, run:
 
+```powershell
+docker run --name cassandra-task -p 9042:9042 -d cassandra:latest
+```
 
-insert_query = session.prepare(
-    "INSERT INTO students (id, createdAt, gpa, email, student_name) VALUES (?, ?, ?, ?, ?)"
-)
+Check that the container is running:
 
+```powershell
+docker ps
+```
 
-uu = uuid.uuid4()
-uudate = datetime.now()
+Wait until Cassandra is ready (first startup may take a minute):
 
-rows = [
-    (uuid.uuid4(), datetime.now(), 3.5, 'john@gmail.com', 'John'),
-    (uuid.uuid4(), datetime.now(), 3.5, 'jane@gmail.com', 'Jane'),
-    (uuid.uuid4(), datetime.now(), 3.8, 'bob@gmail.com', 'Bob'),
-    (uuid.uuid4(), datetime.now(), 3.9, 'alice@gmail.com', 'Alice'),
-    (uu, uudate, 3.5, 'charlie@gmail.com', 'Charlie')
-]
+```powershell
+docker logs -f cassandra-task
+```
 
+Stop logs when you see Cassandra startup complete.
 
+## 2) Install Python dependencies
 
-for row in rows:
-    session.execute(insert_query, row)
-print("Data Inserted successfully")
+If you use the included virtual environment:
 
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
 
-def print_data(message, result_set):
-    print(f"\n--- {message} ---")
-    for row in result_set:
-        print(row)
+Install required packages:
 
+```powershell
+pip install cassandra-driver
+pip install pyasyncore
+```
 
-res = session.execute("SELECT * FROM students")
-print_data("After Initial Insert", res)
+## 3) Run the script
 
-session.execute(
-    "UPDATE students SET gpa = 4.0 WHERE id = %s AND createdAt = %s",
-    (uu, uudate)
-)
+```powershell
+python pythonTask.py
+```
 
-res = session.execute("SELECT * FROM students")
-print_data("After Updating Charlie's GPA", res)
+The script connects to Cassandra at `127.0.0.1:9042`, which maps to the Docker container port.
 
-session.execute(
-    "DELETE FROM students WHERE id = %s AND createdAt = %s",
-    (uu, uudate)
-)
+## What the script does
 
-res = session.execute("SELECT * FROM students")
-print_data("After Deleting Charlie", res)
+The script in `pythonTask.py`:
+
+- creates keyspace `task` if it does not exist
+- creates table `students` if it does not exist
+- inserts sample student rows
+- updates one student GPA
+- deletes one student row
+- prints table contents after each operation
+
+## Docker helper commands
+
+Stop container:
+
+```powershell
+docker stop cassandra-task
+```
+
+Start existing container again:
+
+```powershell
+docker start cassandra-task
+```
+
+Remove container:
+
+```powershell
+docker rm -f cassandra-task
+```
+
+## Notes
+
+- Running the script multiple times keeps adding new sample rows because new UUIDs are generated on each run.
+- If connection fails, verify container health with `docker ps` and check logs with `docker logs cassandra-task`.
