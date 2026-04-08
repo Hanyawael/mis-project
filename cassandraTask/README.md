@@ -1,63 +1,77 @@
-# Cassandra Python Task
+from cassandra.cluster import Cluster
+import uuid
+from datetime import datetime
 
-This project demonstrates basic Cassandra CRUD operations using Python and the DataStax Cassandra driver.
+cluster = Cluster(['127.0.0.1'])
 
-## Requirements
+session = cluster.connect()
 
-- Python 3.13+
-- Apache Cassandra running locally on `127.0.0.1:9042`
+session.execute(
+    "CREATE KEYSPACE IF NOT EXISTS task WITH replication = {'class': 'SimpleStrategy', 'replication_factor': '1'}"
+)
 
-## Dependencies
+session.set_keyspace('task')
 
-Installed dependencies:
+session.execute(
+    """
+    CREATE TABLE IF NOT EXISTS students
+    (
+        id uuid,
+        createdAt timestamp,
+        gpa float, 
+        email varchar,
+        student_name varchar,
+        PRIMARY KEY (id, createdAt)
+    ) WITH CLUSTERING ORDER BY (createdAt DESC)
+    """
+)
+print("Table Created successfully")
 
-- `pyasyncore`
-- `cassandra-driver`
 
-## Setup
+insert_query = session.prepare(
+    "INSERT INTO students (id, createdAt, gpa, email, student_name) VALUES (?, ?, ?, ?, ?)"
+)
 
-If you are using the included virtual environment in this project:
 
-```powershell
-.\.venv\Scripts\Activate.ps1
-```
+uu = uuid.uuid4()
+uudate = datetime.now()
 
-Then install dependencies:
-
-```powershell
-pip install pyasyncore
-pip install cassandra-driver
-```
-
-## Run
-
-From the project root:
-
-```powershell
-python pythonTask.py
-```
-
-## What the script does
-
-The script in `pythonTask.py`:
-
-- connects to local Cassandra cluster
-- creates keyspace `task` if it does not exist
-- creates table `students` if it does not exist
-- inserts sample student rows
-- updates one student GPA
-- deletes one student row
-- prints table contents after each operation
+rows = [
+    (uuid.uuid4(), datetime.now(), 3.5, 'john@gmail.com', 'John'),
+    (uuid.uuid4(), datetime.now(), 3.5, 'jane@gmail.com', 'Jane'),
+    (uuid.uuid4(), datetime.now(), 3.8, 'bob@gmail.com', 'Bob'),
+    (uuid.uuid4(), datetime.now(), 3.9, 'alice@gmail.com', 'Alice'),
+    (uu, uudate, 3.5, 'charlie@gmail.com', 'Charlie')
+]
 
 
 
-Output confirms:
+for row in rows:
+    session.execute(insert_query, row)
+print("Data Inserted successfully")
 
-- table creation
-- data insertion
-- update operation
-- delete operation
 
-## Notes
+def print_data(message, result_set):
+    print(f"\n--- {message} ---")
+    for row in result_set:
+        print(row)
 
-- Running the script multiple times will keep adding new sample rows because new UUIDs are generated on each run.
+
+res = session.execute("SELECT * FROM students")
+print_data("After Initial Insert", res)
+
+session.execute(
+    "UPDATE students SET gpa = 4.0 WHERE id = %s AND createdAt = %s",
+    (uu, uudate)
+)
+
+res = session.execute("SELECT * FROM students")
+print_data("After Updating Charlie's GPA", res)
+
+session.execute(
+    "DELETE FROM students WHERE id = %s AND createdAt = %s",
+    (uu, uudate)
+)
+
+res = session.execute("SELECT * FROM students")
+print_data("After Deleting Charlie", res)
