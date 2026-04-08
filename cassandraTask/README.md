@@ -49,13 +49,7 @@ The script in `pythonTask.py`:
 - deletes one student row
 - prints table contents after each operation
 
-## Verified Status
 
-The script was executed successfully in this workspace using:
-
-```powershell
-c:/Users/mahmo/OneDrive/Desktop/study/Uni/MIs/project/cassandraTask/.venv/Scripts/python.exe pythonTask.py
-```
 
 Output confirms:
 
