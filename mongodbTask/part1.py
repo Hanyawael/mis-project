@@ -9,7 +9,7 @@ courses = db["courses"]
 students.delete_many({})
 courses.delete_many({})
 
-1-
+1-Create collections
 
 students.insert_many([
     {"_id": 1, "name": "Ahmed"},
@@ -31,12 +31,12 @@ courses.insert_many([
     {"_id": 7, "title": "Security"}
 ])
 
-2-
+2-delete documents from each collection
 
 students.delete_many({"_id": {"$in": [5, 6, 7]}})
 courses.delete_many({"_id": {"$in": [5, 6, 7]}})
 
-3-
+3-Update documents [add an array called ‘Score’] in each collection.
 
 students.update_many(
     {"_id": {"$in": [1, 2, 3, 4]}},
@@ -48,7 +48,9 @@ courses.update_many(
     {"$set": {"Score": [2, 3, 4]}}
 )
 
-4-
+4-If the ‘_id’ of the document =1 update the array called ‘Score’
+and put number 5 in the third position of the array, if not  put
+number 6 in the fourth position. 
 
 students.update_many(
     {"_id": 1},
@@ -71,7 +73,7 @@ courses.update_many(
 )
 
 
-5-
+5-Multiply each element in the array called ‘Score’ by 20.
 for doc in students.find({"Score": {"$exists": True}}):
     new_score = [x * 20 for x in doc["Score"]]
     students.update_one(
