@@ -6,43 +6,56 @@ db = client["mydb"]
 students = db["students"]
 courses = db["courses"]
 
-print("Connected to MongoDB")
+students.delete_many({})
+courses.delete_many({})
 
-#1 Create two collections and create at least three documents in each one:
+1-
+
 students.insert_many([
     {"_id": 1, "name": "Ahmed"},
     {"_id": 2, "name": "Ali"},
-    {"_id": 3, "name": "Sara"}
+    {"_id": 3, "name": "Sara"},
+    {"_id": 4, "name": "Mona"},
+    {"_id": 5, "name": "Omar"},
+    {"_id": 6, "name": "Yara"},
+    {"_id": 7, "name": "Khaled"}
 ])
 
 courses.insert_many([
     {"_id": 1, "title": "Math"},
     {"_id": 2, "title": "Physics"},
-    {"_id": 3, "title": "CS"}
+    {"_id": 3, "title": "CS"},
+    {"_id": 4, "title": "AI"},
+    {"_id": 5, "title": "DB"},
+    {"_id": 6, "title": "Networks"},
+    {"_id": 7, "title": "Security"}
 ])
 
-#2 Delete at least one document from each collection:
-students.delete_one({"_id": 3})
-courses.delete_one({"_id": 3})
+2-
 
-#3 Update at least two documents [add an array called ‘Score’] in each collection:
+students.delete_many({"_id": {"$in": [5, 6, 7]}})
+courses.delete_many({"_id": {"$in": [5, 6, 7]}})
+
+3-
+
 students.update_many(
-    {"_id": {"$in": [1, 2]}},
+    {"_id": {"$in": [1, 2, 3, 4]}},
     {"$set": {"Score": [1, 2, 3]}}
 )
 
 courses.update_many(
-    {"_id": {"$in": [1, 2]}},
+    {"_id": {"$in": [1, 2, 3, 4]}},
     {"$set": {"Score": [2, 3, 4]}}
 )
 
-#4 If the ‘_id’ of the document =1 update the array called ‘Score’ and put number 5 in the third position of the array, if not  put number 6 in the fourth position:
-students.update_one(
+4-
+
+students.update_many(
     {"_id": 1},
     {"$set": {"Score.2": 5}}
 )
 
-courses.update_one(
+courses.update_many(
     {"_id": 1},
     {"$set": {"Score.2": 5}}
 )
@@ -57,33 +70,18 @@ courses.update_many(
     {"$set": {"Score.3": 6}}
 )
 
-#5 Multiply each element in the array called ‘Score’ by 20:
-students.update_many(
-    {},
-    [{
-        "$set": {
-            "Score": {
-                "$map": {
-                    "input": "$Score",
-                    "as": "s",
-                    "in": {"$multiply": ["$$s", 20]}
-                }
-            }
-        }
-    }]
-)
 
-courses.update_many(
-    {},
-    [{
-        "$set": {
-            "Score": {
-                "$map": {
-                    "input": "$Score",
-                    "as": "s",
-                    "in": {"$multiply": ["$$s", 20]}
-                }
-            }
-        }
-    }]
-)
+5-
+for doc in students.find({"Score": {"$exists": True}}):
+    new_score = [x * 20 for x in doc["Score"]]
+    students.update_one(
+        {"_id": doc["_id"]},
+        {"$set": {"Score": new_score}}
+    )
+
+for doc in courses.find({"Score": {"$exists": True}}):
+    new_score = [x * 20 for x in doc["Score"]]
+    courses.update_one(
+        {"_id": doc["_id"]},
+        {"$set": {"Score": new_score}}
+    )
