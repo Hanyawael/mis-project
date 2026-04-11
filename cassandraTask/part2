@@ -1,0 +1,64 @@
+## 1. Start Cassandra in Docker
+```bash
+docker run --name cassandra-task -p 9042:9042 -d -e CASSANDRA_BROADCAST_RPC_ADDRESS=127.0.0.1 cassandra:latest
+```
+Wait **60 seconds** then check it's running:
+```bash
+docker ps
+```
+
+---
+
+## 2. Enable Materialized Views
+```bash
+docker exec -it cassandra-task bash -c "sed -i 's/materialized_views_enabled: false/materialized_views_enabled: true/' /etc/cassandra/cassandra.yaml"
+```
+Then restart:
+```bash
+docker restart cassandra-task
+```
+Wait **60 seconds** again.
+
+---
+
+## 3. Run the Python Script (Part 1)
+```bash
+python C:\Users\dell\Downloads\pythonTask.py
+```
+
+---
+
+## 4. Open Cassandra Shell (Part 2)
+```bash
+docker exec -it cassandra-task cqlsh
+```
+```sql
+USE task;
+```
+
+---
+
+## 5. Select in Descending Order
+```sql
+SELECT * FROM students;
+```
+Copy any `id` then:
+```sql
+SELECT * FROM students WHERE id = paste-uuid-here ORDER BY createdAt DESC;
+```
+
+---
+
+## 6. Create Materialized View
+```sql
+CREATE MATERIALIZED VIEW students_by_email AS
+  SELECT * FROM students
+  WHERE email IS NOT NULL AND id IS NOT NULL AND createdAt IS NOT NULL
+  PRIMARY KEY (email, id, createdAt);
+```
+
+---
+
+## 7. Test the View
+```sql
+SELECT * FROM students_by_email;
