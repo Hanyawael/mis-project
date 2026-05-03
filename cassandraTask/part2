@@ -35,7 +35,7 @@ USE task;
 ## 5. Select in Descending Order
 SELECT * FROM students;
 Copy any `id` then:
-SELECT * FROM students WHERE id = paste-uuid-here ORDER BY createdAt DESC;
+SELECT * FROM students WHERE studentid = paste-uuid-here ORDER BY createdAt DESC;
 
 
 ---
@@ -44,8 +44,8 @@ SELECT * FROM students WHERE id = paste-uuid-here ORDER BY createdAt DESC;
 ```sql
 CREATE MATERIALIZED VIEW students_by_email AS
   SELECT * FROM students
-  WHERE email IS NOT NULL AND id IS NOT NULL AND createdAt IS NOT NULL
-  PRIMARY KEY (email, id, createdAt);
+  WHERE email IS NOT NULL AND studentId IS NOT NULL AND createdAt IS NOT NULL
+  PRIMARY KEY (email, studentId, createdAt);
 
 
 ---
