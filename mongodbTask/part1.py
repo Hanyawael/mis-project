@@ -40,12 +40,12 @@ courses.delete_many({"_id": {"$in": [5, 6, 7]}})
 
 students.update_many(
     {"_id": {"$in": [1, 2, 3, 4]}},
-    {"$set": {"Score": [1, 2, 3]}}
+    {"$set": {"Score": [1, 2, 3, 0]}}  
 )
 
 courses.update_many(
     {"_id": {"$in": [1, 2, 3, 4]}},
-    {"$set": {"Score": [2, 3, 4]}}
+    {"$set": {"Score": [2, 3, 4, 0]}}  # added 0 at index 3
 )
 
 4-If the ‘_id’ of the document =1 update the array called ‘Score’
